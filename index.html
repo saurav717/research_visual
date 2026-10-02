@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paper Constellations</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column of reading width; each idea is a two-part spread, the map on one side and the notes on the other,
+   stacking on a phone. Dark-first: a 3D map reads like a planetarium. */
+:root {
+  --bg: #121417;
+  --surface: #1a1d22;
+  --surface-2: #22262c;
+  --fg: #f2f1ec;
+  --muted: #a7a89f;
+  --faint: #6c6e68;
+  --line: #2e323a;
+  --accent: #e9b949;
+  --c-blue: #3987e5;
+  --c-orange: #d95926;
+  --c-aqua: #199e70;
+  --c-yellow: #c98500;
+  --c-magenta: #d55181;
+  --c-violet: #9085e9;
+  --c-red: #e66767;
+  --display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f7f6f1; --surface: #ffffff; --surface-2: #efede6; --fg: #15171a; --muted: #5a5c58; --faint: #8e908a;
+    --line: #dcdad2; --accent: #a7760a;
+    --c-blue: #2a78d6; --c-orange: #eb6834; --c-aqua: #1baf7a; --c-yellow: #eda100; --c-magenta: #e87ba4; --c-violet: #4a3aa7; --c-red: #e34948;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f7f6f1; --surface: #ffffff; --surface-2: #efede6; --fg: #15171a; --muted: #5a5c58; --faint: #8e908a;
+  --line: #dcdad2; --accent: #a7760a;
+  --c-blue: #2a78d6; --c-orange: #eb6834; --c-aqua: #1baf7a; --c-yellow: #eda100; --c-magenta: #e87ba4; --c-violet: #4a3aa7; --c-red: #e34948;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.55; margin: 0; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px; }
+header.hero { max-width: 68ch; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 500; font-size: clamp(38px, 6vw, 60px); line-height: 1.02; margin: 10px 0 18px; text-wrap: balance; letter-spacing: -.01em; }
+.lede { font-size: 18px; color: var(--fg); max-width: 60ch; }
+.lede em, h2 em { font-family: var(--display); font-style: italic; }
+p { max-width: 65ch; }
+a { color: var(--accent); }
+
+.sources { margin-top: 36px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-block: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px 28px; }
+.sources h3 { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 6px; font-weight: 500; }
+.sources ul { margin: 0; padding-left: 16px; color: var(--fg); font-size: 14px; }
+.sources li { margin: 2px 0; }
+.sources li span { color: var(--muted); }
+code { font-family: var(--mono); font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-radius: 3px; }
+
+nav.toc { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 8px; }
+nav.toc a { text-decoration: none; color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font-size: 13px; }
+nav.toc a:hover, nav.toc a:focus-visible { border-color: var(--accent); outline: none; }
+nav.toc a b { font-family: var(--mono); font-weight: 500; color: var(--muted); margin-right: 6px; }
+
+section.idea { margin-top: 72px; scroll-margin-top: 24px; }
+section.idea .head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+section.idea .num { font-family: var(--mono); color: var(--accent); font-size: 13px; letter-spacing: .06em; }
+h2 { font-family: var(--display); font-weight: 500; font-size: clamp(28px, 3.6vw, 36px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.question { color: var(--muted); font-size: 17px; font-family: var(--display); font-style: italic; margin: 6px 0 20px; }
+.spread { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 22px; align-items: start; }
+@media (max-width: 760px) { .spread { grid-template-columns: 1fr; } }
+.map { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; min-width: 0; }
+.map canvas { display: block; width: 100%; aspect-ratio: 4 / 3; max-width: 100%; touch-action: none; cursor: grab; }
+.map canvas:active { cursor: grabbing; }
+.map .hint { position: absolute; right: 10px; top: 8px; font-family: var(--mono); font-size: 11px; color: var(--faint); pointer-events: none; }
+.map .tip { position: absolute; pointer-events: none; background: var(--surface-2); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 9px; font-size: 12.5px; line-height: 1.35; max-width: 240px; transform: translate(-50%, calc(-100% - 12px)); opacity: 0; transition: opacity .12s; }
+.map .tip.on { opacity: 1; }
+.map .tip small { display: block; color: var(--muted); font-family: var(--mono); font-size: 11px; margin-top: 2px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 10px 12px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.sw.line { width: 16px; height: 2px; border-radius: 1px; }
+.sw.dash { width: 16px; height: 0; border-top: 2px dashed currentColor; background: none; }
+.sw.ring { background: none; border: 2px solid currentColor; }
+.notes { min-width: 0; }
+.notes h4 { font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 500; margin: 18px 0 4px; }
+.notes h4:first-child { margin-top: 0; }
+.notes p, .notes ul { margin: 0 0 6px; font-size: 14.5px; }
+.notes ul { padding-left: 18px; }
+.notes li { margin: 3px 0; }
+.verdict { margin-top: 16px; padding: 10px 12px; background: var(--surface-2); border-left: 3px solid var(--accent); font-size: 14px; }
+.verdict b { font-weight: 600; }
+
+.compare { margin-top: 80px; }
+.compare h2 { margin-bottom: 14px; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+table { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 13.5px; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { font-family: var(--mono); font-weight: 500; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--surface); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pill { display: inline-block; font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.pill.yes { color: var(--c-aqua); border-color: var(--c-aqua); }
+.pill.meh { color: var(--c-yellow); border-color: var(--c-yellow); }
+.pill.no { color: var(--muted); }
+
+.place { margin-top: 72px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
+@media (max-width: 760px) { .place { grid-template-columns: 1fr; } }
+.place .mock { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; font-size: 12.5px; min-width: 0; }
+.place .mock .bar { display: flex; gap: 6px; align-items: center; margin-bottom: 10px; }
+.place .mock .tab { padding: 3px 10px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
+.place .mock .tab.on { background: var(--surface-2); color: var(--fg); border-color: var(--surface-2); }
+.place .mock .cols { display: grid; grid-template-columns: 1fr 2.4fr 1.6fr; gap: 8px; height: 170px; }
+.place .mock .cols > div { border: 1px dashed var(--line); border-radius: 4px; padding: 8px; color: var(--muted); font-family: var(--mono); font-size: 11px; }
+.place .mock .cols .dock { border-style: solid; background: var(--surface-2); color: var(--fg); position: relative; overflow: hidden; }
+.place .mock .cols .dock canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.place .mock .cols .dock .lbl { position: relative; z-index: 1; }
+kbd { font-family: var(--mono); font-size: .85em; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 3px; padding: 0 5px; }
+footer { margin-top: 60px; color: var(--faint); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
+@media (prefers-reduced-motion: reduce) { .map .tip { transition: none; } }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header class="hero">
+  <div class="eyebrow">Reader · brainstorm · maps around a paper</div>
+  <h1>Paper Constellations</h1>
+  <p class="lede">You are reading one paper. Each map below puts it in the middle and answers one question about what surrounds it: <em>where it came from</em>, <em>who made it</em>, <em>what it sits beside</em>, <em>what is inside it</em>, and <em>what you already own</em>. Drag any map to turn it. Hover a point for its paper.</p>
+  <p>The example data is a stand-in built around <i>Attention Is All You Need</i> so the shapes are recognisable. None of these numbers are real.</p>
+
+  <div class="sources">
+    <div><h3>OpenAlex, already called</h3><ul>
+      <li><code>referenced_works</code> <span>what it cites</span></li>
+      <li><code>cited_by_api_url</code> <span>who cites it</span></li>
+      <li><code>related_works</code> <span>ten neighbours</span></li>
+      <li><code>authorships</code> + author works <span>co-authors</span></li>
+      <li><code>topics</code> <span>cluster tints</span></li>
+    </ul></div>
+    <div><h3>Semantic Scholar, already called</h3><ul>
+      <li>citation <code>intents</code> <span>background / method / result</span></li>
+      <li><code>isInfluential</code> <span>thick edges</span></li>
+      <li><code>recommendations</code> <span>neighbours by embedding</span></li>
+      <li>SPECTER <code>embedding</code> <span>a ground plane</span></li>
+    </ul></div>
+    <div><h3>In the app already</h3><ul>
+      <li><code>citations.ts</code> <span>every [n] and where on the page it is</span></li>
+      <li>hover cards <span>author, citation, venue</span></li>
+      <li>the library <span>reading / not started / finished</span></li>
+      <li>highlights <span>what you underlined</span></li>
+    </ul></div>
+  </div>
+
+  <nav class="toc" aria-label="Ideas">
+    <a href="#ancestry"><b>1</b>Ancestry</a>
+    <a href="#orbits"><b>2</b>Author orbits</a>
+    <a href="#neighbourhood"><b>3</b>Neighbourhood</a>
+    <a href="#terrain"><b>4</b>Field terrain</a>
+    <a href="#inside"><b>5</b>Inside the paper</a>
+    <a href="#shelf"><b>6</b>Your shelf</a>
+    <a href="#compare"><b>·</b>Which first</a>
+  </nav>
+</header>
+
+<!-- 1 ───────────────────────────────────────────── -->
+<section class="idea" id="ancestry">
+  <div class="head"><span class="num">01</span><h2>Ancestry: what it stands on, what stands on it</h2></div>
+  <p class="question">Where did this paper come from, and where did it go?</p>
+  <div class="spread">
+    <div class="map" data-scene="ancestry">
+      <canvas aria-label="A three-layer map: the papers this one cites below it, the paper in the middle, the papers that cite it above"></canvas>
+      <div class="hint">drag · time runs upward</div>
+      <div class="tip"></div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--accent)"></i>this paper</span>
+        <span><i class="sw line" style="background:var(--c-blue)"></i>background</span>
+        <span><i class="sw line" style="background:var(--c-orange)"></i>uses its method</span>
+        <span><i class="sw line" style="background:var(--c-aqua)"></i>compares results</span>
+        <span>thick = influential · size = citations</span>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>The shape</h4>
+      <p>Time is the vertical axis. The paper floats at its own year. Everything it cites hangs below it, everything that cites it rises above. A faint second layer shows the references of the references and the citers of the citers, so the paper reads as a waist in an hourglass.</p>
+      <h4>Encoding</h4>
+      <ul>
+        <li>Height: publication year, so an old reference sits far down and a preprint from last month sits just overhead.</li>
+        <li>Edge colour: Semantic Scholar's citation intent. A paper that cites this one for its method is a different kind of descendant from one that cites it in passing.</li>
+        <li>Edge weight: influential citations are drawn thick. The thick edges upward are the papers worth opening next.</li>
+        <li>Point size: citation count, log scale.</li>
+      </ul>
+      <h4>Interaction</h4>
+      <ul>
+        <li>Hover opens the citation card the app already has. Click opens it in Discover.</li>
+        <li>Click a node and it becomes the waist: the map re-centres and its own ancestry fills in.</li>
+        <li>A year slider at the side clips the top, so you can watch the descendants arrive.</li>
+      </ul>
+      <div class="verdict"><b>Cost:</b> two OpenAlex calls plus one Semantic Scholar call for intents, all of which the app already makes for other reasons. <b>3D:</b> earns its keep; the depth axis separates the two hundred citers so they do not pile onto one line.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 ───────────────────────────────────────────── -->
+<section class="idea" id="orbits">
+  <div class="head"><span class="num">02</span><h2>Author orbits: who they work with</h2></div>
+  <p class="question">Who are these authors, and who do they keep coming back to?</p>
+  <div class="spread">
+    <div class="map" data-scene="orbits">
+      <canvas aria-label="Each author of the paper is a sun with their frequent co-authors orbiting; shared co-authors sit between two suns"></canvas>
+      <div class="hint">drag · nearer orbit = more papers together</div>
+      <div class="tip"></div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--accent)"></i>this paper</span>
+        <span><i class="sw" style="background:var(--c-violet)"></i>its authors</span>
+        <span><i class="sw" style="background:var(--c-magenta)"></i>co-authors</span>
+        <span><i class="sw ring" style="color:var(--c-magenta)"></i>works with two of them</span>
+        <span><i class="sw" style="background:var(--muted);width:6px;height:6px"></i>their papers</span>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>The shape</h4>
+      <p>The paper is the centre. Its authors are suns placed around it. Each sun carries its own system: the people this author has published with most, orbiting at a distance set by how many papers they share. A co-author who works with two of the suns sits in a shared orbit between them, and that is where the lab, or the standing collaboration, becomes visible.</p>
+      <h4>Encoding</h4>
+      <ul>
+        <li>Orbit radius: inverse of papers co-written. The inner ring is the people they always write with.</li>
+        <li>Sun size: h-index from the author card the app already fetches.</li>
+        <li>Small grey satellites: the papers themselves, parked on the orbit of the collaboration that produced them.</li>
+        <li>Ring colour: the author's main OpenAlex topic, so a sun whose rings are all one colour is a specialist.</li>
+      </ul>
+      <h4>Interaction</h4>
+      <ul>
+        <li>Hover a sun opens the author card. Hover a satellite opens the paper.</li>
+        <li>A <em>time</em> toggle turns each orbit into a spiral, year by year outward, so you can see a collaboration that ended.</li>
+        <li>Pin a co-author to see every paper they share with the suns listed on the right.</li>
+      </ul>
+      <div class="verdict"><b>Cost:</b> one OpenAlex works query per author, which the author card half does already. <b>3D:</b> worthwhile when a paper has eight authors; at two authors a flat pair of rings is enough.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 ───────────────────────────────────────────── -->
+<section class="idea" id="neighbourhood">
+  <div class="head"><span class="num">03</span><h2>Neighbourhood: the papers it is most relevant to</h2></div>
+  <p class="question">What is this paper in conversation with, whether or not they cite each other?</p>
+  <div class="spread">
+    <div class="map" data-scene="neighbourhood">
+      <canvas aria-label="A sphere of papers around this one; distance is relatedness, colour is topic, solid links are co-citation, dashed links share references"></canvas>
+      <div class="hint">drag · nearer = more related</div>
+      <div class="tip"></div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--accent)"></i>this paper</span>
+        <span><i class="sw line" style="background:var(--muted)"></i>cited together</span>
+        <span><i class="sw dash" style="color:var(--muted)"></i>share references</span>
+        <span><i class="sw" style="background:var(--c-blue)"></i><i class="sw" style="background:var(--c-orange)"></i><i class="sw" style="background:var(--c-aqua)"></i>topics</span>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>The shape</h4>
+      <p>A cloud, not a tree. Relatedness is distance from the centre, computed three ways and blended: papers often cited <em>alongside</em> this one (co-citation), papers that cite the <em>same things</em> (bibliographic coupling), and OpenAlex's own <code>related_works</code>. The result includes papers with no citation edge to this one at all, which is the point: the rival method from another lab is here, two hops away in citation terms but one hop away in meaning.</p>
+      <h4>Encoding</h4>
+      <ul>
+        <li>Distance: blended relatedness score, nearest at the centre.</li>
+        <li>Colour: OpenAlex primary topic, so clusters of the same hue are subfields.</li>
+        <li>Solid link: cited together at least five times. Dashed: share a quarter of their references.</li>
+        <li>A paper you have already read is drawn filled, one you have not is hollow, so the unread part of the neighbourhood stands out.</li>
+      </ul>
+      <h4>Interaction</h4>
+      <ul>
+        <li>Hover for the card. Drag a cluster out to see it as its own neighbourhood.</li>
+        <li>A list beside the map names the twenty nearest, with <b>+</b> to save each to a collection, the way Discover does.</li>
+      </ul>
+      <div class="verdict"><b>Cost:</b> coupling needs the reference lists of each citer, so about fifty calls, cached per paper. <b>3D:</b> moderate; a cloud is genuinely volumetric, but a 2D force layout tells nearly the same story.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 ───────────────────────────────────────────── -->
+<section class="idea" id="terrain">
+  <div class="head"><span class="num">04</span><h2>Field terrain: where it sits in the landscape</h2></div>
+  <p class="question">Is this paper on a well-trodden peak, or out on its own?</p>
+  <div class="spread">
+    <div class="map" data-scene="terrain">
+      <canvas aria-label="A wireframe landscape; position is a 2D embedding of papers, height is citation density; this paper is a flag and the author's other work are pins"></canvas>
+      <div class="hint">drag · height = citations</div>
+      <div class="tip"></div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--accent)"></i>this paper</span>
+        <span><i class="sw" style="background:var(--c-violet)"></i>same first author</span>
+        <span><i class="sw" style="background:var(--muted);width:6px;height:6px"></i>papers in the field</span>
+        <span>ridge = heavily cited ground</span>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>The shape</h4>
+      <p>A map in the geographic sense. The ground plane is a two-dimensional projection of paper embeddings (Semantic Scholar's SPECTER vectors, or OpenAlex topic scores where there is no vector). Height is how heavily cited the ground is around each point. Peaks are the crowded, settled parts of the field. This paper is a flag planted somewhere on it, and the first author's other papers are pins, so you also see their path across the terrain over the years.</p>
+      <h4>Encoding</h4>
+      <ul>
+        <li>Position: UMAP of embeddings for the few hundred papers nearest this one, computed once in a worker.</li>
+        <li>Height: kernel-smoothed citation count, log scale.</li>
+        <li>Pins joined in year order make the author's trail. A long jump is a change of field.</li>
+      </ul>
+      <h4>Interaction</h4>
+      <ul>
+        <li>Hover a pin for the paper. Hover the ground for the topic name the nearest papers share.</li>
+        <li>Click a peak to list the papers that make it, most cited first.</li>
+      </ul>
+      <div class="verdict"><b>Cost:</b> the embeddings are one batched Semantic Scholar call; UMAP in the browser for 500 points is a second or two. <b>3D:</b> the whole idea is the third axis, so yes. This is the most striking of the six and the hardest to make trustworthy, since the projection moves a little every time it is recomputed.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 ───────────────────────────────────────────── -->
+<section class="idea" id="inside">
+  <div class="head"><span class="num">05</span><h2>Inside the paper: a citation mind map</h2></div>
+  <p class="question">Which references does each part of the paper lean on?</p>
+  <div class="spread">
+    <div class="map" data-scene="inside">
+      <canvas aria-label="The paper at the centre with a spoke for each section; the references it cites hang off the sections that cite them"></canvas>
+      <div class="hint">drag · spokes are sections</div>
+      <div class="tip"></div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--accent)"></i>this paper</span>
+        <span><i class="sw" style="background:var(--c-blue)"></i>sections</span>
+        <span><i class="sw" style="background:var(--muted)"></i>references · size = times cited</span>
+        <span><i class="sw line" style="background:var(--c-orange)"></i>cited in two sections</span>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>The shape</h4>
+      <p>This is the one that is literally a mind map. The paper is the hub, its sections are the spokes, and every entry in the bibliography hangs off the section that cites it. The app already finds each <code>[12]</code> on the page and knows the bibliography entry it names, so the only new work is reading which section heading the mark sits under. A reference cited in both the introduction and the results gets a cord between the two spokes, and those cords are the paper's argument: the thing it set up and then measured against.</p>
+      <h4>Encoding</h4>
+      <ul>
+        <li>Spoke length: how many citations the section makes. A long related-work spoke and a short methods spoke says the contribution is small and the survey is thorough.</li>
+        <li>Leaf size: times cited within the paper.</li>
+        <li>Leaf colour: whether you have it in the library, so the unread references of the methods section are obvious.</li>
+      </ul>
+      <h4>Interaction</h4>
+      <ul>
+        <li>Click a leaf and the page scrolls to the first place it is cited, with the citation flashed, the way <b>In the bibliography</b> does now.</li>
+        <li>Click a spoke to jump to the section.</li>
+        <li>Your highlights appear as small marks on the spokes at the place in the section they were made.</li>
+      </ul>
+      <div class="verdict"><b>Cost:</b> no network at all; everything is on the page. <b>3D:</b> not really needed. A radial 2D map is clearer. Shown in 3D here only so it can be compared with the others on equal terms.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 ───────────────────────────────────────────── -->
+<section class="idea" id="shelf">
+  <div class="head"><span class="num">06</span><h2>Your shelf: the map with your library laid over it</h2></div>
+  <p class="question">Of everything near this paper, what have I read, and what should I read next?</p>
+  <div class="spread">
+    <div class="map" data-scene="shelf">
+      <canvas aria-label="The neighbourhood of the paper, with each node styled by whether you have finished it, are reading it, have not started it, or do not have it; collections drawn as halos"></canvas>
+      <div class="hint">drag · ghosts are not in your library</div>
+      <div class="tip"></div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--fg)"></i>finished</span>
+        <span><i class="sw" style="background:linear-gradient(90deg,var(--fg) 50%,transparent 50%);border:1.5px solid var(--fg)"></i>reading</span>
+        <span><i class="sw ring" style="color:var(--fg)"></i>not started</span>
+        <span><i class="sw ring" style="color:var(--faint);border-style:dashed"></i>not in library</span>
+        <span><i class="sw" style="background:var(--c-aqua)"></i>read next</span>
+      </div>
+    </div>
+    <div class="notes">
+      <h4>The shape</h4>
+      <p>The same neighbourhood as map 3, but the ink is yours. Finished papers are solid, half-read ones are half-filled, saved but untouched ones are hollow, and papers you do not own are dashed ghosts. Each collection is a translucent halo around its members. Three ghosts glow: the ones with the most edges into the solid part of the map, which is a defensible definition of <em>read next</em>.</p>
+      <h4>Encoding</h4>
+      <ul>
+        <li>Fill: reading state from the library, the same three states Home uses.</li>
+        <li>Halo colour: collection. A paper in two collections sits where two halos overlap.</li>
+        <li>Glow: the read-next score, which is edges into finished papers minus edges into ghosts.</li>
+      </ul>
+      <h4>Interaction</h4>
+      <ul>
+        <li><b>+</b> on a ghost saves it to the collection whose halo it is nearest.</li>
+        <li>The <b>Today</b> view on Home could use the same score for <em>start the next paper</em> instead of picking by date added.</li>
+        <li>Hovering a solid node shows your highlights from it, so the map doubles as a memory of what you took from each.</li>
+      </ul>
+      <div class="verdict"><b>Cost:</b> none beyond map 3; the library is local. <b>3D:</b> same as map 3. The value here is the overlay, not the dimension.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Compare ───────────────────────────────────────── -->
+<section class="compare" id="compare">
+  <h2>Which to build first</h2>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Map</th><th>Answers</th><th>New data needed</th><th>Calls per paper</th><th>Needs 3D</th><th>Fits the app</th></tr></thead>
+    <tbody>
+      <tr><td><b>1</b> Ancestry</td><td>origins and descendants</td><td>citation intents (one S2 call)</td><td class="num">3</td><td><span class="pill yes">yes</span></td><td>Discover already shows this list flat; the map is the same data drawn with time.</td></tr>
+      <tr><td><b>2</b> Author orbits</td><td>collaborators</td><td>works per author</td><td class="num">1 per author</td><td><span class="pill meh">with 4+ authors</span></td><td>extends the author hover card; good home for the people search.</td></tr>
+      <tr><td><b>3</b> Neighbourhood</td><td>relevance without a citation</td><td>reference lists of citers</td><td class="num">~50, cached</td><td><span class="pill meh">moderate</span></td><td>the strongest answer to "what else should I read".</td></tr>
+      <tr><td><b>4</b> Field terrain</td><td>place in the field</td><td>SPECTER embeddings, UMAP</td><td class="num">2 + compute</td><td><span class="pill yes">yes</span></td><td>the showpiece; the projection needs care to be stable.</td></tr>
+      <tr><td><b>5</b> Inside the paper</td><td>which section uses which reference</td><td>none</td><td class="num">0</td><td><span class="pill no">no, 2D</span></td><td>pure win from the citation marks already on the page.</td></tr>
+      <tr><td><b>6</b> Your shelf</td><td>what to read next</td><td>none beyond map 3</td><td class="num">0</td><td><span class="pill meh">same as 3</span></td><td>feeds Today and Inbox; the reason to keep a map open.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="margin-top:18px">A suggested order: <b>1 and 3 together</b>, because they share the same two OpenAlex fetches and can be one map with a switch between <em>by time</em> and <em>by relatedness</em>; the library overlay from <b>6</b> is a styling layer on top of either and costs nothing. <b>5</b> is a day's work with no network and belongs in the Highlights dock rather than a map tab. <b>4</b> is the one to show people, so it is the one to do once the first two have found their users.</p>
+</section>
+
+<!-- Place ───────────────────────────────────────── -->
+<section class="place">
+  <div>
+    <h2 style="font-size:28px">Where it lives in Reader</h2>
+    <p>A third tab in the dock, beside <b>Discover</b> and <b>Highlights</b>, called <b>Map</b>, on <kbd>M</kbd>. The dock is narrow, so the map is a small turning globe there with a switch for which map, and <kbd>⇧M</kbd> or the expand corner opens it as a floating window the way Ask AI does, over the paper.</p>
+    <p>Every point reuses what already exists: hovering shows the citation or author card, clicking opens the paper in Discover with Save, Read and Source, and <b>+</b> saves to the collection chosen on Home. The map is a different way of looking at the same records, so nothing new is stored, and the one thing to cache is the neighbourhood per paper, in the same place the citation lookups are kept for the session.</p>
+    <p>On Home, the <b>Find papers</b> suggestions row (<em>near the paper you are reading</em>) is already the nearest ten of map 3. The row could turn into the map when the dock is away.</p>
+  </div>
+  <div class="mock" aria-label="Sketch of the reader window with a Map tab in the dock">
+    <div class="bar"><span class="tab">Discover</span><span class="tab">Highlights</span><span class="tab on">Map</span><span style="margin-left:auto;color:var(--faint);font-family:var(--mono);font-size:11px">by time ▾ · ⤢</span></div>
+    <div class="cols">
+      <div>library<br><br>reading now<br>not started<br>finished</div>
+      <div>the paper</div>
+      <div class="dock" data-scene="mini"><canvas></canvas><div class="lbl">Map</div></div>
+    </div>
+  </div>
+</section>
+
+<footer>Six sketches, one paper. Example data only; the shapes are the proposal, the numbers are not.</footer>
+</div>
+
+<script>
+(() => {
+  // ---------- tiny 3D engine on canvas 2D ----------
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const css = (el, name) => getComputedStyle(el).getPropertyValue(name).trim();
+
+  function rng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+
+  class Scene {
+    constructor(host, build, opts = {}) {
+      this.host = host; this.canvas = host.querySelector('canvas'); this.tip = host.querySelector('.tip');
+      this.ctx = this.canvas.getContext('2d');
+      this.build = build; this.opts = opts;
+      this.yaw = opts.yaw ?? 0.6; this.pitch = opts.pitch ?? 0.35; this.auto = !reduced;
+      this.visible = false; this.dragging = false; this.hover = -1; this.proj = [];
+      this.data = null; this.themeKey = '';
+      this.bind(); this.resize();
+      new ResizeObserver(() => this.resize()).observe(this.canvas);
+      new IntersectionObserver(es => { this.visible = es[0].isIntersecting; if (this.visible) this.loop(); }, { threshold: 0.05 }).observe(this.canvas);
+      this.draw();
+    }
+    theme() {
+      const el = this.canvas;
+      const t = {
+        fg: css(el, '--fg'), muted: css(el, '--muted'), faint: css(el, '--faint'), line: css(el, '--line'),
+        accent: css(el, '--accent'), surface: css(el, '--surface'),
+        blue: css(el, '--c-blue'), orange: css(el, '--c-orange'), aqua: css(el, '--c-aqua'), yellow: css(el, '--c-yellow'),
+        magenta: css(el, '--c-magenta'), violet: css(el, '--c-violet'), red: css(el, '--c-red'),
+      };
+      const key = Object.values(t).join('|');
+      if (key !== this.themeKey) { this.themeKey = key; this.data = this.build(t); }
+      return t;
+    }
+    resize() {
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      const r = this.canvas.getBoundingClientRect();
+      if (!r.width) return;
+      this.w = r.width; this.h = r.height || r.width * 0.75;
+      this.canvas.width = Math.round(this.w * dpr); this.canvas.height = Math.round(this.h * dpr);
+      this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this.draw();
+    }
+    bind() {
+      const c = this.canvas; let lx = 0, ly = 0;
+      c.addEventListener('pointerdown', e => { this.dragging = true; lx = e.clientX; ly = e.clientY; c.setPointerCapture(e.pointerId); this.pause = true; });
+      c.addEventListener('pointermove', e => {
+        if (this.dragging) { this.yaw += (e.clientX - lx) * 0.008; this.pitch = Math.max(-1.2, Math.min(1.2, this.pitch + (e.clientY - ly) * 0.006)); lx = e.clientX; ly = e.clientY; this.draw(); }
+        else { this.hit(e); }
+      });
+      const up = () => { this.dragging = false; clearTimeout(this.resumeT); this.resumeT = setTimeout(() => { this.pause = false; }, 2500); };
+      c.addEventListener('pointerup', up); c.addEventListener('pointercancel', up);
+      c.addEventListener('pointerleave', () => { if (!this.dragging) { this.hover = -1; this.tip?.classList.remove('on'); this.draw(); } });
+    }
+    hit(e) {
+      const r = this.canvas.getBoundingClientRect(); const x = e.clientX - r.left, y = e.clientY - r.top;
+      let best = -1, bd = 14;
+      for (const p of this.proj) { if (!p.n.label) continue; const d = Math.hypot(p.x - x, p.y - y); if (d < bd + p.r) { bd = d; best = p.i; } }
+      if (best !== this.hover) {
+        this.hover = best;
+        if (this.tip) {
+          if (best >= 0) { const n = this.data.nodes[best]; this.tip.innerHTML = `${n.label}${n.sub ? `<small>${n.sub}</small>` : ''}`; this.tip.classList.add('on'); }
+          else this.tip.classList.remove('on');
+        }
+        this.draw();
+      }
+      if (best >= 0 && this.tip) { const p = this.proj.find(q => q.i === best); this.tip.style.left = p.x + 'px'; this.tip.style.top = p.y + 'px'; }
+    }
+    loop() {
+      if (!this.visible) return;
+      if (this.auto && !this.pause && !this.dragging) { this.yaw += this.opts.speed ?? 0.0025; this.draw(); }
+      requestAnimationFrame(() => this.loop());
+    }
+    project(p) {
+      const cy = Math.cos(this.yaw), sy = Math.sin(this.yaw), cp = Math.cos(this.pitch), sp = Math.sin(this.pitch);
+      const x1 = p.x * cy - p.z * sy, z1 = p.x * sy + p.z * cy;
+      const y1 = p.y * cp - z1 * sp, z2 = p.y * sp + z1 * cp;
+      const f = 2.6, s = f / (f + z2), R = Math.min(this.w, this.h) * (this.opts.scale ?? 0.42);
+      return { x: this.w / 2 + x1 * s * R, y: this.h / 2 - y1 * s * R + (this.opts.dy ?? 0) * this.h, s, z: z2 };
+    }
+    draw() {
+      const t = this.theme(); const { nodes, links, polylines = [], after } = this.data; const ctx = this.ctx;
+      ctx.clearRect(0, 0, this.w, this.h);
+      const fade = z => 0.3 + 0.7 * (1 - (z + 1.1) / 2.2);
+      // polylines (grids, rings, surfaces)
+      for (const pl of polylines) {
+        const pts = pl.pts.map(p => this.project(p));
+        ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); if (pl.close) ctx.closePath();
+        const zm = pts.reduce((a, p) => a + p.z, 0) / pts.length;
+        ctx.globalAlpha = (pl.alpha ?? 0.5) * fade(zm); ctx.strokeStyle = pl.color; ctx.lineWidth = pl.w ?? 1; ctx.setLineDash(pl.dash || []); ctx.stroke(); ctx.setLineDash([]);
+        if (pl.fill) { ctx.globalAlpha = pl.fillAlpha ?? 0.08; ctx.fillStyle = pl.fill; ctx.fill(); }
+      }
+      ctx.globalAlpha = 1;
+      const P = nodes.map((n, i) => { const q = this.project(n); return { ...q, n, i, r: Math.max(1.2, n.r * q.s) }; });
+      this.proj = P;
+      // links
+      for (const l of links) {
+        const a = P[l.a], b = P[l.b];
+        const zm = (a.z + b.z) / 2;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y);
+        if (l.curve) { const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2 - 24 * l.curve; ctx.quadraticCurveTo(mx, my, b.x, b.y); } else ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = l.color; ctx.lineWidth = (l.w ?? 1) * ((a.s + b.s) / 2); ctx.globalAlpha = (l.alpha ?? 0.55) * fade(zm);
+        ctx.setLineDash(l.dash || []); ctx.stroke(); ctx.setLineDash([]);
+      }
+      // nodes, back to front
+      const order = [...P].sort((a, b) => b.z - a.z);
+      for (const p of order) {
+        const n = p.n, hov = p.i === this.hover;
+        ctx.globalAlpha = (n.alpha ?? 1) * fade(p.z);
+        if (n.glow) { const g = ctx.createRadialGradient(p.x, p.y, p.r, p.x, p.y, p.r * 4); g.addColorStop(0, n.glow); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 4, 0, 7); ctx.fill(); }
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r + (hov ? 2 : 0), 0, 7);
+        if (n.style === 'ring' || n.style === 'ghost') { ctx.strokeStyle = n.color; ctx.lineWidth = 1.5; ctx.setLineDash(n.style === 'ghost' ? [3, 3] : []); ctx.stroke(); ctx.setLineDash([]); }
+        else { ctx.fillStyle = n.color; ctx.fill(); if (n.style === 'half') { ctx.save(); ctx.clip(); ctx.fillStyle = t.surface; ctx.fillRect(p.x, p.y - p.r - 3, p.r + 3, p.r * 2 + 6); ctx.restore(); ctx.strokeStyle = n.color; ctx.lineWidth = 1.5; ctx.stroke(); } }
+        if (n.pin) { ctx.beginPath(); ctx.moveTo(p.x, p.y); const g = this.project({ x: n.x, y: n.pin, z: n.z }); ctx.lineTo(g.x, g.y); ctx.strokeStyle = n.color; ctx.lineWidth = 1; ctx.globalAlpha = 0.5 * fade(p.z); ctx.stroke(); }
+        if (n.text && (n.always || p.z < 0.4 || hov)) {
+          ctx.globalAlpha = Math.min(1, fade(p.z) + 0.2); ctx.font = `${n.big ? 500 : 400} ${n.big ? 13 : 11}px ${css(this.canvas, '--body')}`;
+          ctx.fillStyle = n.big ? t.fg : t.muted; ctx.textBaseline = 'middle';
+          const tx = p.x + p.r + 6; ctx.fillText(n.text, tx, p.y);
+        }
+      }
+      ctx.globalAlpha = 1;
+      if (after) after(ctx, this, t);
+    }
+  }
+
+  const sphere = (r, u, v) => ({ x: r * Math.cos(u) * Math.cos(v), y: r * Math.sin(v), z: r * Math.sin(u) * Math.cos(v) });
+  const ring = (cx, cy, cz, r, tilt = 0, n = 48) => { const pts = []; for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) * Math.sin(tilt), z: cz + r * Math.sin(a) * Math.cos(tilt) }); } return pts; };
+
+  // ---------- 1 · ancestry ----------
+  const refs = [['Neural machine translation by jointly learning to align and translate', 2014, 'Bahdanau, Cho, Bengio', 'background', true, 2.2],
+    ['Long short-term memory', 1997, 'Hochreiter, Schmidhuber', 'background', false, 2.6],
+    ['Layer normalization', 2016, 'Ba, Kiros, Hinton', 'method', true, 1.6],
+    ['Adam: a method for stochastic optimization', 2014, 'Kingma, Ba', 'method', false, 2.8],
+    ['Deep residual learning for image recognition', 2015, 'He et al.', 'method', false, 2.9],
+    ['Sequence to sequence learning with neural networks', 2014, 'Sutskever, Vinyals, Le', 'background', true, 2.3],
+    ['Effective approaches to attention-based NMT', 2015, 'Luong, Pham, Manning', 'result', false, 1.9],
+    ['Google\'s neural machine translation system', 2016, 'Wu et al.', 'result', true, 2.0],
+    ['Convolutional sequence to sequence learning', 2017, 'Gehring et al.', 'result', true, 1.7],
+    ['Dropout', 2014, 'Srivastava et al.', 'method', false, 2.4],
+    ['A structured self-attentive sentence embedding', 2017, 'Lin et al.', 'background', false, 1.3],
+    ['Neural GPUs learn algorithms', 2015, 'Kaiser, Sutskever', 'background', false, 1.1]];
+  const citers = [['BERT: pre-training of deep bidirectional transformers', 2018, 'Devlin et al.', 'method', true, 3],
+    ['Language models are few-shot learners', 2020, 'Brown et al.', 'method', true, 2.8],
+    ['An image is worth 16×16 words', 2020, 'Dosovitskiy et al.', 'method', true, 2.6],
+    ['Longformer: the long-document transformer', 2020, 'Beltagy, Peters, Cohan', 'method', false, 1.8],
+    ['Reformer: the efficient transformer', 2020, 'Kitaev, Kaiser, Levskaya', 'result', false, 1.6],
+    ['Universal transformers', 2018, 'Dehghani et al.', 'method', false, 1.4],
+    ['Transformer-XL', 2019, 'Dai et al.', 'result', true, 1.9],
+    ['Self-attention with relative position representations', 2018, 'Shaw, Uszkoreit, Vaswani', 'method', false, 1.5],
+    ['Image transformer', 2018, 'Parmar et al.', 'method', false, 1.3],
+    ['Music transformer', 2018, 'Huang et al.', 'background', false, 1.3],
+    ['Efficient transformers: a survey', 2020, 'Tay et al.', 'background', false, 1.4],
+    ['Attention is not explanation', 2019, 'Jain, Wallace', 'background', false, 1.3],
+    ['Analyzing multi-head self-attention', 2019, 'Voita et al.', 'result', false, 1.2],
+    ['Are sixteen heads really better than one?', 2019, 'Michel, Levy, Neubig', 'result', false, 1.2],
+    ['Set transformer', 2019, 'Lee et al.', 'method', false, 1.1],
+    ['Decision transformer', 2021, 'Chen et al.', 'method', false, 1.4],
+    ['Scaling laws for neural language models', 2020, 'Kaplan et al.', 'background', true, 1.9],
+    ['Highly accurate protein structure prediction with AlphaFold', 2021, 'Jumper et al.', 'method', true, 2.4]];
+  function ancestry(t) {
+    const R = rng(7); const nodes = [], links = [], polylines = [];
+    const col = { background: t.blue, method: t.orange, result: t.aqua };
+    const yr = y => (y - 2017) / 4.2; // vertical
+    nodes.push({ x: 0, y: 0, z: 0, r: 8, color: t.accent, label: 'Attention is all you need', sub: '2017 · Vaswani et al. · this paper', text: 'Attention is all you need', big: true, always: true });
+    const place = (list, sign) => list.forEach((p, i) => {
+      const a = i / list.length * Math.PI * 2 + R() * 0.4, rad = 0.45 + R() * 0.45;
+      const n = { x: Math.cos(a) * rad, y: yr(p[1]) + (sign > 0 ? 0.08 : -0.08), z: Math.sin(a) * rad, r: 2 + p[5] * 1.4, color: t.muted, label: p[0], sub: `${p[1]} · ${p[2]} · ${p[3]}${p[4] ? ' · influential' : ''}` };
+      if (p[4] && (i < 2)) { n.text = p[0].split(':')[0].slice(0, 28); }
+      nodes.push(n);
+      links.push({ a: 0, b: nodes.length - 1, color: col[p[3]], w: p[4] ? 2.2 : 0.8, alpha: p[4] ? 0.85 : 0.45 });
+    });
+    place(refs, -1); place(citers, 1);
+    // second degree, faint
+    for (let i = 0; i < 40; i++) { const a = R() * 7, rad = 0.5 + R() * 0.6, up = R() > 0.5; const y = up ? 1.0 + R() * 0.25 : -1.05 - R() * 0.25; nodes.push({ x: Math.cos(a) * rad, y, z: Math.sin(a) * rad, r: 1.6, color: t.faint, alpha: 0.55 }); const base = up ? 13 + Math.floor(R() * citers.length) : 1 + Math.floor(R() * refs.length); links.push({ a: base, b: nodes.length - 1, color: t.faint, w: 0.5, alpha: 0.25 }); }
+    // year planes
+    [[-0.95, '2013'], [0, '2017'], [0.75, '2020']].forEach(([y, lab]) => polylines.push({ pts: ring(0, y, 0, 1.05, 0, 72), close: true, color: t.line, alpha: 0.9, dash: [2, 4], label: lab }));
+    const after = (ctx, sc, th) => { ctx.font = `11px ${css(sc.canvas, '--mono')}`; ctx.fillStyle = th.faint; ctx.textBaseline = 'middle'; polylines.forEach(pl => { const p = sc.project({ x: -1.05, y: pl.pts[0].y, z: 0 }); ctx.fillText(pl.label, Math.max(6, p.x - 36), p.y); }); };
+    return { nodes, links, polylines, after };
+  }
+
+  // ---------- 2 · orbits ----------
+  function orbits(t) {
+    const R = rng(3); const nodes = [], links = [], polylines = [];
+    nodes.push({ x: 0, y: 0, z: 0, r: 7, color: t.accent, label: 'Attention is all you need', sub: '8 authors', text: 'this paper', big: true, always: true });
+    const authors = [['Ashish Vaswani', t.violet, 1.0, ['Noam Shazeer', 'Niki Parmar', 'Jakob Uszkoreit', 'Lukasz Kaiser', 'Samy Bengio']],
+      ['Noam Shazeer', t.violet, 1.1, ['Jeff Dean', 'Azalia Mirhoseini', 'Quoc Le', 'Ashish Vaswani', 'Lukasz Kaiser', 'Adam Roberts']],
+      ['Lukasz Kaiser', t.violet, 0.9, ['Ilya Sutskever', 'Noam Shazeer', 'Aidan Gomez', 'Ashish Vaswani', 'Samy Bengio']],
+      ['Jakob Uszkoreit', t.violet, 0.8, ['Niki Parmar', 'Peter Shaw', 'Ashish Vaswani', 'Alexey Dosovitskiy']],
+      ['Illia Polosukhin', t.violet, 0.6, ['Alex Skidanov', 'Oleksandr Yermolenko']]];
+    const seen = new Map(); const topic = [t.blue, t.orange, t.aqua];
+    authors.forEach((a, i) => {
+      const ang = i / authors.length * Math.PI * 2, d = 0.78;
+      const cx = Math.cos(ang) * d, cz = Math.sin(ang) * d, cy = (R() - 0.5) * 0.5;
+      nodes.push({ x: cx, y: cy, z: cz, r: 3.5 + a[2] * 3, color: a[1], label: a[0], sub: `h-index ${Math.round(30 + a[2] * 40)} · author of this paper`, text: a[0].split(' ')[1], big: true, always: true });
+      const sun = nodes.length - 1;
+      links.push({ a: 0, b: sun, color: t.line, w: 1, alpha: 0.7 });
+      a[3].forEach((co, j) => {
+        const isAuthor = authors.some(x => x[0] === co);
+        const orbitR = 0.16 + j * 0.065, tilt = 0.5 + R() * 0.9;
+        polylines.push({ pts: ring(cx, cy, cz, orbitR, tilt, 40), close: true, color: topic[(i + j) % 3], alpha: 0.35, w: 0.8 });
+        if (isAuthor) return; // the shared person is already a sun
+        const ph = R() * 7;
+        const p = { x: cx + orbitR * Math.cos(ph), y: cy + orbitR * Math.sin(ph) * Math.sin(tilt), z: cz + orbitR * Math.sin(ph) * Math.cos(tilt) };
+        const shared = seen.has(co);
+        if (shared) { const k = seen.get(co); const q = nodes[k]; q.style = 'ring'; q.r = 3.6; q.sub = 'works with two authors of this paper'; q.x = (q.x + p.x) / 2; q.y = (q.y + p.y) / 2; q.z = (q.z + p.z) / 2; links.push({ a: sun, b: k, color: t.magenta, w: 1, alpha: 0.5, dash: [2, 3] }); return; }
+        nodes.push({ ...p, r: 2.6, color: t.magenta, label: co, sub: `${8 - j} papers with ${a[0]}` }); seen.set(co, nodes.length - 1);
+        for (let s = 0; s < 2 + Math.floor(R() * 3); s++) { const ph2 = ph + 0.3 + R() * 1.2; nodes.push({ x: cx + orbitR * Math.cos(ph2), y: cy + orbitR * Math.sin(ph2) * Math.sin(tilt), z: cz + orbitR * Math.sin(ph2) * Math.cos(tilt), r: 1.3, color: t.muted, alpha: 0.7, label: 'a paper by ' + a[0].split(' ')[1] + ' and ' + co.split(' ')[1], sub: String(2015 + Math.floor(R() * 8)) }); }
+      });
+    });
+    return { nodes, links, polylines };
+  }
+
+  // ---------- 3 · neighbourhood ----------
+  const neigh = [['Convolutional sequence to sequence learning', 0.18, 0, 'Gehring et al. 2017'], ['Google\'s neural machine translation system', 0.22, 0, 'Wu et al. 2016'], ['Effective approaches to attention-based NMT', 0.3, 0, 'Luong et al. 2015'],
+    ['Neural machine translation by jointly learning to align and translate', 0.26, 0, 'Bahdanau et al. 2014'], ['Universal transformers', 0.33, 0, 'Dehghani et al. 2018'], ['Self-attention with relative position representations', 0.28, 0, 'Shaw et al. 2018'],
+    ['Depthwise separable convolutions for NMT', 0.4, 0, 'Kaiser et al. 2017'], ['A structured self-attentive sentence embedding', 0.42, 1, 'Lin et al. 2017'], ['Long short-term memory-networks for machine reading', 0.5, 1, 'Cheng et al. 2016'],
+    ['A decomposable attention model', 0.45, 1, 'Parikh et al. 2016'], ['Bidirectional attention flow', 0.55, 1, 'Seo et al. 2017'], ['End-to-end memory networks', 0.6, 1, 'Sukhbaatar et al. 2015'],
+    ['Neural Turing machines', 0.72, 1, 'Graves et al. 2014'], ['ByteNet: neural machine translation in linear time', 0.46, 2, 'Kalchbrenner et al. 2016'], ['WaveNet', 0.7, 2, 'van den Oord et al. 2016'],
+    ['Exploring the limits of language modeling', 0.62, 2, 'Jozefowicz et al. 2016'], ['Deep contextualized word representations', 0.5, 2, 'Peters et al. 2018'], ['Massive exploration of NMT architectures', 0.48, 0, 'Britz et al. 2017'],
+    ['Can active memory replace attention?', 0.38, 1, 'Kaiser, Bengio 2016'], ['Non-autoregressive NMT', 0.56, 0, 'Gu et al. 2018']];
+  function cloud(t, styled) {
+    const R = rng(11); const nodes = [], links = [], polylines = [];
+    const tint = [t.blue, t.orange, t.aqua];
+    nodes.push({ x: 0, y: 0, z: 0, r: 8, color: t.accent, label: 'Attention is all you need', sub: 'this paper', text: 'this paper', big: true, always: true, glow: styled ? null : null });
+    const states = ['done', 'reading', 'todo', 'ghost', 'ghost', 'ghost'];
+    const centers = [[0.4, 0.3, 0.2], [-0.5, -0.2, 0.3], [0.1, -0.4, -0.6]];
+    neigh.forEach((p, i) => {
+      const c = centers[p[2]]; const d = p[1] * 1.6;
+      const dir = { x: c[0] + (R() - 0.5) * 0.5, y: c[1] + (R() - 0.5) * 0.5, z: c[2] + (R() - 0.5) * 0.5 }; const L = Math.hypot(dir.x, dir.y, dir.z);
+      const n = { x: dir.x / L * d, y: dir.y / L * d, z: dir.z / L * d, r: 2.5 + (1 - p[1]) * 4, color: tint[p[2]], label: p[0], sub: p[3] + ' · relatedness ' + (1 - p[1]).toFixed(2) };
+      if (i < 3) n.text = p[0].slice(0, 26);
+      if (styled) { const st = states[Math.floor(R() * states.length)]; n.color = st === 'ghost' ? t.faint : t.fg; n.style = st === 'done' ? 'fill' : st === 'reading' ? 'half' : st === 'todo' ? 'ring' : 'ghost'; n.sub = p[3] + ' · ' + { done: 'finished', reading: 'reading now', todo: 'not started', ghost: 'not in your library' }[st]; n.state = st; }
+      nodes.push(n);
+      links.push({ a: 0, b: nodes.length - 1, color: t.muted, w: 0.8, alpha: p[1] < 0.35 ? 0.5 : 0.18 });
+    });
+    // lateral links: co-citation (solid) and coupling (dashed)
+    for (let k = 0; k < 26; k++) { const a = 1 + Math.floor(R() * neigh.length), b = 1 + Math.floor(R() * neigh.length); if (a === b) continue; const same = neigh[a - 1][2] === neigh[b - 1][2]; if (!same && R() < 0.6) continue; links.push({ a, b, color: t.muted, w: 0.7, alpha: 0.3, dash: R() < 0.5 ? [3, 3] : null }); }
+    if (styled) {
+      // halos per collection
+      centers.forEach((c, i) => { const col = tint[i]; for (let q = 0; q < 3; q++) polylines.push({ pts: ring(c[0] * 0.75, c[1] * 0.75, c[2] * 0.75, 0.42, q * 1.05 + 0.2, 40), close: true, color: col, alpha: 0.28, w: 1, fill: col, fillAlpha: 0.04 }); });
+      // read-next glow on three ghosts
+      let g = 0; for (const n of nodes) if (n.state === 'ghost' && g < 3) { n.glow = t.aqua; n.color = t.aqua; n.sub += ' · read next'; n.text = n.label.slice(0, 24); g++; }
+    } else {
+      // scatter of unlabeled far papers
+      for (let i = 0; i < 60; i++) { const p = sphere(0.9 + R() * 0.35, R() * 7, (R() - 0.5) * 3); nodes.push({ ...p, r: 1.4, color: tint[Math.floor(R() * 3)], alpha: 0.45 }); }
+    }
+    return { nodes, links, polylines };
+  }
+
+  // ---------- 4 · terrain ----------
+  function terrain(t) {
+    const R = rng(5); const nodes = [], links = [], polylines = [];
+    const peaks = [[0.35, 0.2, 0.55, 0.22], [-0.45, -0.1, 0.42, 0.28], [-0.1, 0.55, 0.3, 0.18], [0.5, -0.6, 0.22, 0.2], [-0.6, 0.6, 0.18, 0.15]];
+    const H = (x, z) => { let h = 0; for (const [px, pz, a, s] of peaks) h += a * Math.exp(-((x - px) ** 2 + (z - pz) ** 2) / (2 * s * s)); return h; };
+    const N = 22, base = -0.55, ext = 1.05;
+    const grid = []; for (let i = 0; i <= N; i++) { grid.push([]); for (let j = 0; j <= N; j++) { const x = -ext + 2 * ext * i / N, z = -ext + 2 * ext * j / N; grid[i].push({ x, y: base + H(x, z) * 1.2, z }); } }
+    for (let i = 0; i <= N; i += 1) polylines.push({ pts: grid[i], color: t.line, alpha: 0.9, w: 0.8 });
+    for (let j = 0; j <= N; j += 1) polylines.push({ pts: grid.map(r => r[j]), color: t.line, alpha: 0.9, w: 0.8 });
+    // contour-ish emphasis: ridge lines a bit brighter
+    for (let i = 0; i <= N; i += 4) polylines.push({ pts: grid[i], color: t.muted, alpha: 0.35, w: 0.8 });
+    const put = (x, z, o) => { const y = base + H(x, z) * 1.2 + 0.02; nodes.push({ x, y, z, pin: base + H(x, z) * 1.2, ...o }); };
+    put(0.3, 0.12, { r: 6, color: t.accent, label: 'Attention is all you need', sub: '2017 · on the neural MT ridge', text: 'this paper', big: true, always: true });
+    const trail = [[-0.55, 0.05, 2014, 'Neural GPUs learn algorithms'], [-0.3, -0.1, 2015, 'Grammar as a foreign language'], [-0.05, 0.25, 2016, 'Can active memory replace attention?'], [0.3, 0.12, 2017, 'Attention is all you need'], [0.42, -0.28, 2018, 'Image transformer'], [0.55, -0.5, 2019, 'Reformer']];
+    let prev = -1; trail.forEach((p, i) => { if (i === 3) { prev = 1; return; } put(p[0], p[1], { r: 3.2, color: t.violet, label: p[3], sub: `${p[2]} · same first author` }); const k = nodes.length - 1; if (prev >= 0) links.push({ a: prev, b: k, color: t.violet, w: 1.2, alpha: 0.7 }); prev = k; });
+    for (let i = 0; i < 220; i++) { const [px, pz, , s] = peaks[Math.floor(R() * peaks.length)]; const x = px + (R() + R() - 1) * s * 2.2, z = pz + (R() + R() - 1) * s * 2.2; if (Math.abs(x) > ext || Math.abs(z) > ext) continue; put(x, z, { r: 1.3, color: t.muted, alpha: 0.7, pin: undefined }); }
+    const names = ['machine translation', 'memory networks', 'speech', 'vision', 'program synthesis'];
+    const after = (ctx, sc, th) => { ctx.font = `italic 11px ${css(sc.canvas, '--display')}`; ctx.fillStyle = th.muted; ctx.textAlign = 'center'; peaks.forEach((p, i) => { const q = sc.project({ x: p[0], y: base + p[2] * 1.2 + 0.1, z: p[1] }); ctx.globalAlpha = 0.9; ctx.fillText(names[i], q.x, q.y - 10); }); ctx.textAlign = 'left'; };
+    return { nodes, links, polylines, after };
+  }
+
+  // ---------- 5 · inside ----------
+  function inside(t) {
+    const R = rng(21); const nodes = [], links = [], polylines = [];
+    nodes.push({ x: 0, y: 0, z: 0, r: 8, color: t.accent, label: 'Attention is all you need', sub: '7 sections · 40 references', text: 'this paper', big: true, always: true });
+    const sections = [['1 Introduction', 9], ['2 Background', 7], ['3 Model architecture', 10], ['4 Why self-attention', 5], ['5 Training', 6], ['6 Results', 8], ['7 Conclusion', 2]];
+    const refNames = ['Bahdanau 2014', 'Sutskever 2014', 'Wu 2016', 'Gehring 2017', 'Ba 2016', 'Kingma 2014', 'He 2015', 'Srivastava 2014', 'Luong 2015', 'Hochreiter 1997', 'Kalchbrenner 2016', 'Kaiser 2016', 'Cho 2014', 'Chung 2014', 'Britz 2017', 'Szegedy 2015', 'Press 2016', 'Sennrich 2015', 'Gu 2016', 'Dyer 2016'];
+    const shared = new Map();
+    sections.forEach((s, i) => {
+      const a = i / sections.length * Math.PI * 2, len = 0.35 + s[1] * 0.055, ty = (R() - 0.5) * 0.4;
+      nodes.push({ x: Math.cos(a) * len, y: ty, z: Math.sin(a) * len, r: 4.5, color: t.blue, label: s[0], sub: `${s[1]} citations`, text: s[0].replace(/^\d /, ''), always: true });
+      const sec = nodes.length - 1; links.push({ a: 0, b: sec, color: t.blue, w: 1.6, alpha: 0.8 });
+      for (let k = 0; k < s[1]; k++) {
+        const name = refNames[Math.floor(R() * refNames.length)];
+        const spread = (k / s[1] - 0.5) * 0.9, rr = len + 0.18 + R() * 0.22, ang = a + spread * 0.6;
+        const p = { x: Math.cos(ang) * rr, y: ty + (R() - 0.5) * 0.5, z: Math.sin(ang) * rr };
+        if (shared.has(name)) { const j = shared.get(name); links.push({ a: sec, b: j, color: t.orange, w: 1, alpha: 0.6, curve: 1 }); nodes[j].r += 0.8; nodes[j].sub = 'cited in more than one section'; continue; }
+        nodes.push({ ...p, r: 2 + R() * 2, color: t.muted, label: name, sub: `cited in ${s[0]}` }); shared.set(name, nodes.length - 1);
+        links.push({ a: sec, b: nodes.length - 1, color: t.line, w: 0.9, alpha: 0.9 });
+      }
+    });
+    return { nodes, links, polylines };
+  }
+
+  // ---------- mini (dock) ----------
+  function mini(t) { const d = cloud(t, false); d.nodes = d.nodes.slice(0, 21).map(n => ({ ...n, text: undefined, r: n.r * 0.6 })); d.links = d.links.filter(l => l.a < 21 && l.b < 21); return d; }
+
+  const builders = { ancestry: [ancestry, { pitch: 0.25, scale: 0.4 }], orbits: [orbits, { pitch: 0.5, scale: 0.44 }], neighbourhood: [(t) => cloud(t, false), { scale: 0.38 }], terrain: [terrain, { pitch: 0.55, scale: 0.46, speed: 0.0015 }], inside: [inside, { pitch: 0.7, scale: 0.42 }], shelf: [(t) => cloud(t, true), { scale: 0.4 }], mini: [mini, { scale: 0.5, speed: 0.004 }] };
+  document.querySelectorAll('[data-scene]').forEach(host => { const [b, o] = builders[host.dataset.scene]; new Scene(host, b, o); });
+})();
+</script>
+</body>
+</html>
